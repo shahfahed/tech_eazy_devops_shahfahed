@@ -28,6 +28,8 @@ sleep 180
 echo "Testing app on port 80..."
 curl -I http://$INSTANCE_IP
 
+echo "Done ✅"
+
 #echo "Sleeping 300 seconds before stopping instance for cost saving..."
 #sleep 300
 
@@ -36,5 +38,3 @@ curl -I http://$INSTANCE_IP
 
 #echo "Stopping instance..."
 #aws ec2 stop-instances --instance-ids instance_id
-
-echo "Done ✅"

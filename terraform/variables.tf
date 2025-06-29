@@ -24,5 +24,5 @@ variable "name_tag" {
 
 variable "repo_url" {
   description = "Git repo URL"
-  default     = "https://github.com/techeazy-consulting/techeazy-devops"
+  default     = "https://github.com/techeazy-consulting/techeazy-devops.git"
 }
