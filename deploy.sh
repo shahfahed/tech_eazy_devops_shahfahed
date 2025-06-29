@@ -13,7 +13,7 @@ else
 fi
 
 echo "Initializing Terraform..."
-cd /home/ubuntu/terraform
+cd /home/ubuntu/tech_eazy_devops_shahfahed/terraform
 terraform init
 
 echo "Applying Terraform..."
