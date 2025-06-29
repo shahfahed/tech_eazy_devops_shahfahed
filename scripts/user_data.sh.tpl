@@ -8,8 +8,4 @@ git clone ${repo_url}
 
 cd techeazy-devops
 mvn package
-
-sudo mkdir /home/ubuntu/backend
-sudo cp target/*.jar /home/ubuntu/backend
-
-sudo java -jar /home/ubuntu/backend/*.jar &
+sudo java -jar target/*.jar &
