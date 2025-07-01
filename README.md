@@ -17,10 +17,11 @@ This solution does the following:
 ---
 ## ⚙️ **Prerequisites**
 
-- AWS account with Free Tier.
+- AWS account with Free Tier
 - EC2 instance
-- IAM role.
-- Terraform.
+- IAM role
+- Terraform
+- aws cli
 
 ---
 
