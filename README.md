@@ -34,11 +34,11 @@ This solution does the following:
 │   ├── deploy.sh
 │   ├── dev_config.sh
 │   ├── prod_config.sh
-│   └── user_data.sh.tpl
 └── terraform
     ├── main.tf
     ├── outputs.tf
-    └── variables.tf
+    ├── variables.tf
+    └── user_data.sh.tpl
 ```
 
 ---
@@ -56,6 +56,15 @@ This solution does the following:
 ```
 http://<public-ip>
 ```
+
+**Note**: Update the configuraion files with the following:
+
+- Preferred region
+- Ubuntu ami-id of the region specified above
+- Instance type
+- PEM key
+- Instance tag
+- Repo URL
 
 ### Terraform
 
