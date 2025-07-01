@@ -42,7 +42,7 @@ resource "aws_instance" "ec2" {
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
 
-  user_data = templatefile("/home/ubuntu/tech_eazy_devops_shahfahed/scripts/user_data.sh.tpl", {
+  user_data = templatefile("${path.module}/user_data.sh.tpl", {
     repo_url = var.repo_url
     })
 

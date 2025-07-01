@@ -18,7 +18,7 @@ This solution does the following:
 ## ⚙️ **Prerequisites**
 
 - AWS account with Free Tier
-- EC2 instance
+- EC2 instance (ubuntu/debian)
 - IAM role
 - Terraform
 - aws cli
