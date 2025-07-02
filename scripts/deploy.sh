@@ -4,9 +4,6 @@ set -e
 # If any command in the script returns a non-zero exit code (error), immediately stop the script execution.
 # Helps avoid continuing after failures (a safety feature).
 
-echo "Adding execution permissions to config files"
-chmod +x dev_config.sh prod_config.sh
-
 STAGE=$1
 
 if [[ "$STAGE" == "Dev" ]]; then
