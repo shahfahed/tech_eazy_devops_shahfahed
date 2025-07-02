@@ -29,7 +29,10 @@ sleep 180
 
 ec2_id=$(terraform output -raw ec2_id)
 ec2_public_ip=$(terraform output -raw public_ip)
+ec2_logs_bucket=$(terraform output -raw s3_bucket_name)
+
 echo "EC2 instance created at IP: $ec2_public_ip"
+echo "S3 bucket name: $ec2_logs_bucket"
 
 echo "Testing app on port 80..."
 curl -I http://$ec2_public_ip
