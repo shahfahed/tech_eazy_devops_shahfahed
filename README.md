@@ -45,6 +45,15 @@ This solution does the following:
 
 ## 🌟 **How It Works**
 
+### Steps:
+1. Get into the sripts directory of the cloned repo.
+2. Execute the commands below.
+
+```
+sudo chmod +x deploy.sh
+./deploy.sh <stage>     # Stages: Dev and Prod -- Paas one of it
+```
+
 ### Deployment Script `deploy.sh`
 
 - Accepts a **Stage** argument (`Dev`, `Prod`).

@@ -1,10 +1,19 @@
 #!/bin/bash
-sudo apt update -y
-sudo apt install -y openjdk-21-jdk git maven
+sudo apt-get update -y
 
-git clone ${repo_url} /home/ubuntu/
+# java-21, git and maven installation
+sudo apt-get install -y openjdk-21-jdk git maven
 
-cd techeazy-devops
+# awscli installation
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+sudo apt-get install -y unzip
+unzip awscliv2.zip
+sudo ./aws/install
+sudo rm -rf awscliv2.zip aws
+
+git clone ${repo_url} /home/ubuntu/app
+
+cd /home/ubuntu/app/
 mvn package
 sudo java -jar target/*.jar &
 

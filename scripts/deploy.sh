@@ -3,8 +3,6 @@
 echo "Adding execution permissions to config files"
 chmod +x dev_config.sh prod_config.sh
 
-ls -l
-
 STAGE=$1
 
 if [[ "$STAGE" == "Dev" ]]; then
