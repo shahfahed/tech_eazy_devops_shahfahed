@@ -14,14 +14,17 @@ sudo rm -rf awscliv2.zip aws
 git clone ${repo_url} /home/ubuntu/app
 
 cd /home/ubuntu/app/
-mvn package
-sudo java -jar target/*.jar &
 
-sleep 30 # waiting for app to start
+# Build
+mvn package
+
+# Run app in background
+sudo java -jar target/*.jar &
+#nohup java -jar target/*.jar &
 
 # Log file creation
 echo "App deployed successfully at $(date)" > /var/log/app-deploy.log
 
 # Upload logs to S3
-aws s3 cp /var/log/syslog s3://${bucket_name}/syslog-$(date +%s).log
-aws s3 cp /var/log/app-deploy.log s3://${bucket_name}/app-deploy-$(date +%s).log
+aws s3 cp /var/log/cloud-init.log s3://${bucket_name}/cloud-init-$(date +%s).log
+aws s3 cp /var/log/app-deploy.log s3://${bucket_name}/app/logs/app-deploy-$(date +%s).log

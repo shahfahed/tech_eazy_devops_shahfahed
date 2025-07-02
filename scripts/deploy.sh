@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set -e
+# If any command in the script returns a non-zero exit code (error), immediately stop the script execution.
+# Helps avoid continuing after failures (a safety feature).
+
 echo "Adding execution permissions to config files"
 chmod +x dev_config.sh prod_config.sh
 
@@ -22,8 +26,8 @@ terraform init
 echo "Applying Terraform..."
 terraform apply --auto-approve
 
-echo "Waiting 3 minutes to allow instance setup..."
-sleep 180
+echo "Waiting 4 minutes to allow instance setup..."
+sleep 240
 
 ec2_id=$(terraform output -raw ec2_id)
 ec2_public_ip=$(terraform output -raw public_ip)

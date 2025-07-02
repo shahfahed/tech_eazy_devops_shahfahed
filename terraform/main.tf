@@ -6,6 +6,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
+
 resource "aws_security_group" "allow_ssh_http" {
   name        = "allow-ssh-http"
   description = "Allow SSH and HTTP"
@@ -36,16 +37,36 @@ resource "aws_security_group" "allow_ssh_http" {
   }
 }
 
+
 resource "aws_s3_bucket" "logs_bucket" {
-  bucket = "${var.name_tag}-ec2-logs"
-  # String interploation
+  bucket        = var.bucket_name
+  force_destroy = true
   tags = {
-    Name = "${var.name_tag}-ec2-logs"
+    Name = var.bucket_name
   }
 }
 
-resource "aws_iam_role" "ec2_role" {
-  name = "${var.name_tag}-ec2-role"
+
+resource "aws_s3_bucket_lifecycle_configuration" "logs_lifecycle" {
+  bucket = aws_s3_bucket.logs_bucket.id
+
+  rule {
+    id     = "log-expire"
+    status = "Enabled"
+
+    expiration {
+      days = 7
+    }
+
+    filter {
+      prefix = "" # If blank lc rule applies to all objects
+    }
+  }
+}
+
+
+resource "aws_iam_role" "s3_putobject_role" {
+  name = "${var.name_tag}-s3-putobject-role"
   
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -60,13 +81,14 @@ resource "aws_iam_role" "ec2_role" {
     ]
   })
   tags = {
-    Name = "${var.name_tag}-ec2-role"
+    Name = "${var.name_tag}-s3-putobject-role"
   }
 }
 
-resource "aws_iam_role_policy" "ec2_policy" {
-  name = "${var.name_tag}-ec2-policy"
-  role = aws_iam_role.ec2_role.id
+
+resource "aws_iam_role_policy" "s3_putobject_policy" {
+  name = "${var.name_tag}-s3-putobject-policy"
+  role = aws_iam_role.s3_putobject_role.id
 
   # Terraform's "jsonencode" function converts a
   # Terraform expression result to valid JSON syntax.
@@ -84,21 +106,56 @@ resource "aws_iam_role_policy" "ec2_policy" {
   })
 }
 
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.name_tag}-instance-profile"
-  role = aws_iam_role.ec2_role.name
+
+resource "aws_iam_instance_profile" "s3_putobject_profile" {
+  name = "${var.name_tag}-s3-putobject-instance-profile"
+  role = aws_iam_role.s3_putobject_role.name
 }
+
+
+resource "aws_iam_role" "s3_readonly_role" {
+  name = "${var.name_tag}-s3-readonly"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+  tags = {
+    Name = "${var.name_tag}-read-s3-role"
+  }
+}
+
+
+resource "aws_iam_role_policy_attachment" "s3_readonly_policy" {
+  role = aws_iam_role.s3_readonly_role.id
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+}
+
+
+resource "aws_iam_instance_profile" "s3_readonly_profile" {
+  name = "${var.name_tag}-s3-readonly-instance-profile"
+  role = aws_iam_role.s3_readonly_role.name
+}
+
 
 resource "aws_instance" "ec2" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
-  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.s3_putobject_profile.name
 
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
     repo_url    = var.repo_url
-    bucket_name = aws_s3_bucket.logs_bucket.bucket
+    bucket_name = var.bucket_name
     })
 
   tags = {
