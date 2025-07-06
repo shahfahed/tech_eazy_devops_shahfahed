@@ -2,7 +2,7 @@
 
 set -e
 # If any command in the script returns a non-zero exit code (error), immediately stop the script execution.
-# Helps avoid continuing after failures (a safety feature).
+# Helps avoid continuing after failures [a safety feature].
 
 STAGE=$1
 
