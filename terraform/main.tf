@@ -6,7 +6,6 @@ data "aws_vpc" "default" {
   default = true
 }
 
-
 resource "aws_security_group" "allow_ssh_http" {
   name        = "allow-ssh-http"
   description = "Allow SSH and HTTP"
@@ -37,7 +36,6 @@ resource "aws_security_group" "allow_ssh_http" {
   }
 }
 
-
 resource "aws_s3_bucket" "logs_bucket" {
   bucket        = var.bucket_name
   force_destroy = true
@@ -45,7 +43,6 @@ resource "aws_s3_bucket" "logs_bucket" {
     Name = var.bucket_name
   }
 }
-
 
 resource "aws_s3_bucket_lifecycle_configuration" "logs_lifecycle" {
   bucket = aws_s3_bucket.logs_bucket.id
@@ -63,7 +60,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs_lifecycle" {
     }
   }
 }
-
 
 resource "aws_iam_role" "s3_putobject_role" {
   name = "${var.name_tag}-s3-putobject-role"
@@ -85,7 +81,6 @@ resource "aws_iam_role" "s3_putobject_role" {
   }
 }
 
-
 resource "aws_iam_role_policy" "s3_putobject_policy" {
   name = "${var.name_tag}-s3-putobject-policy"
   role = aws_iam_role.s3_putobject_role.id
@@ -106,12 +101,10 @@ resource "aws_iam_role_policy" "s3_putobject_policy" {
   })
 }
 
-
 resource "aws_iam_instance_profile" "s3_putobject_profile" {
   name = "${var.name_tag}-s3-putobject-instance-profile"
   role = aws_iam_role.s3_putobject_role.name
 }
-
 
 resource "aws_iam_role" "s3_readonly_role" {
   name = "${var.name_tag}-s3-readonly"
@@ -133,18 +126,15 @@ resource "aws_iam_role" "s3_readonly_role" {
   }
 }
 
-
 resource "aws_iam_role_policy_attachment" "s3_readonly_policy" {
   role = aws_iam_role.s3_readonly_role.id
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 }
 
-
 resource "aws_iam_instance_profile" "s3_readonly_profile" {
   name = "${var.name_tag}-s3-readonly-instance-profile"
   role = aws_iam_role.s3_readonly_role.name
 }
-
 
 resource "aws_instance" "ec2" {
   ami                    = var.ami_id
