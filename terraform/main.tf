@@ -148,7 +148,7 @@ resource "aws_instance" "ec2" {
   user_data = count.index == 0 ? templatefile("${path.module}/user_data.sh.tpl", {
     repo_url    = var.repo_url
     bucket_name = var.bucket_name
-    }) : file(user_data_2.sh)
+    }) : file("${path.module}/user_data_2.sh")
 
   tags = {
     Name = (
