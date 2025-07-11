@@ -36,10 +36,13 @@ echo "S3 bucket name: $ec2_logs_bucket"
 echo "Testing app on port 80..."
 curl -I http://$putobject_ec2_public_ip
 
-echo "Sleeping 300 seconds before stopping instance for cost saving..."
-sleep 300
+echo "Sleeping 3 minutes before stopping instance for cost saving..."
+sleep 180
 
 echo "Stopping instance..."
 aws ec2 stop-instances --instance-ids $putobject_ec2_id
+
+echo "Infrastructure will go down in 60 seconds..."
+terraform destroy --auto-approve
 
 echo "Done ✅"
