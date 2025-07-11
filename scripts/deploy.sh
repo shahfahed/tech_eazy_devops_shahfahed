@@ -43,5 +43,3 @@ echo "Stopping instance..."
 aws ec2 stop-instances --instance-ids $putobject_ec2_id
 
 echo "Done ✅"
-
-echo "
