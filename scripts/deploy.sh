@@ -43,6 +43,7 @@ echo "Stopping instance..."
 aws ec2 stop-instances --instance-ids $putobject_ec2_id
 
 echo "Infrastructure will go down in 60 seconds..."
+sleep 60
 terraform destroy --auto-approve
 
 echo "Done ✅"
