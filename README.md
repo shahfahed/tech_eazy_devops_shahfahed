@@ -1,6 +1,6 @@
-# AWS EC2 Automated Deployment Project
+# AWS EC2 Automated Deployment Project with GitHub Actions
 
-This project automates the deployment of an application on an AWS EC2 instance using **Terraform** and a shell script.
+This project automates the deployment of an application on an AWS EC2 instance using **Terraform**, **shell script** and **GitHub Actions**.
 
 ---
 
@@ -8,27 +8,29 @@ This project automates the deployment of an application on an AWS EC2 instance u
 
 This solution does the following:
 
-1️⃣ Spins up an EC2 with configurable instance type & repo.  
-2️⃣ Installs required dependencies (Java 21, Git, Maven, AWS CLI).  
-3️⃣ Clones app repository and deploys the application.  
+1️⃣ Spins up EC2 instances.  
+  • Supports multiple stages (Dev, Prod) via separate configuration files.  
+2️⃣ Installs required dependencies.  
+  • (Java 21, Git, Maven, AWS CLI).  
+3️⃣ Clones app repository and deploys the application on first EC2.  
 4️⃣ Verifies that the app is reachable on port 80.  
-5️⃣ Supports multiple stages (Dev, Prod) via separate configuration files.  
-6️⃣ Creates a private S3 bucket and uploads EC2 logs and app logs to it.  
-7️⃣ Lifecycle rule automatically deletes logs after 7 days to save storage cost.  
-8️⃣ Supports two IAM roles:  
-  • Read-only S3 role (used to list and verify uploaded logs).  
-  • Write-only S3 role (attached to EC2 for uploading logs; no read permission).  
-9️⃣ Stops EC2 instance automatically after a set time (to avoid cost).  
-
+5️⃣ Creates a private S3 bucket and uploads EC2 logs and app logs to it.    
+6️⃣ Lifecycle rule automatically deletes logs after 7 days to save storage cost.  
+7️⃣ Supports two IAM roles:  
+  • Write-only S3 role (attached to EC2 for uploading logs; no read permission). - Attached to First EC2  
+  • Read-only S3 role (used to list and verify uploaded logs). - Attached to second EC2  
+8️⃣ Stops EC2 instance automatically after a set time (to avoid cost).  
+9️⃣ Uses GitHub Actions to automate provisioning, deployment, and validation.
 ---
 
 ## ⚙️ **Prerequisites**
 
-- AWS account with Free Tier
-- EC2 instance (Ubuntu 24.04)
-- IAM role
+- AWS account (Free Tier)
 - Terraform
 - AWS CLI
+- GitHub repository with secrets configured  
+  • AWS_ACCESS_KEY_ID  
+  • AWS_SECRET_ACCESS_KEY  
 
 ### Install Terraform and AWS CLI
 
@@ -60,6 +62,9 @@ sudo rm -rf awscliv2.zip aws
 ```
 .
 ├── README.md
+├── .github
+    └── workflows
+        └── automate.yaml
 ├── scripts
 │   ├── deploy.sh
 │   ├── dev_config.sh
@@ -68,6 +73,7 @@ sudo rm -rf awscliv2.zip aws
     ├── main.tf
     ├── outputs.tf
     ├── variables.tf
+    ├── user_data_2.sh
     └── user_data.sh.tpl
 ```
 
@@ -77,44 +83,33 @@ sudo rm -rf awscliv2.zip aws
 
 ### Steps
 
-**1.** Go into the **scripts** directory of the cloned repo.
+- Choose stage by pushing a tag:
+  - deploy-dev → Dev configs
+  - deploy-prod → Prod configs
 
-   Update the configuration files with the following:
+- Executes on Dev ENV by default when changes pushed to main.
 
-- Preferred region
-- Ubuntu AMI ID for your region
-- Instance type
-- PEM key
-- Instance tag
-- Repo URL
-- **Bucket name** (mandatory — validated by Terraform)
 
-**2.** Execute the commands below.
 
-```
-sudo chmod +x deploy.sh
-./deploy.sh <stage>     # Stages: Dev or Prod — Pass one of them
-```
+**Workflow (automate.yaml)**
 
-### Deployment Script `deploy.sh`
+- Triggered on push to main and on deploy-* tags.
+- Sets stage variable dynamically.
+- Configures AWS credentials securely using GitHub secrets.
+- Runs deploy.sh, which:
+  - Sources correct config file.
+  - Runs Terraform to provision EC2, S3, IAM roles.
+  - Uploads logs to S3.
+  - Verifies application health using curl.
 
-- Accepts a **Stage** argument (`Dev`, `Prod`).
-- Sources configuration from `dev_config.sh` or `prod_config.sh` based on the input received.
-- Executes Terraform commands.
-- Tests if the app is reachable using `curl`.
-- Outputs the public IP. You can test in your browser:
-
-```
-http://<public-ip>
-```
 
 ### Terraform
 
-- Creates an EC2 instance in the **default VPC**.
-- Attaches a security group allowing SSH (port 22) and HTTP (port 80).
-- Uses `terraform/user_data.sh.tpl` to install required packages and start the app automatically.
+- Creates EC2 instances in the **default VPC**.
+- Attaches security groups allowing SSH (port 22) and HTTP (port 80).
+- Uses userdata scripts to install required packages and start the app automatically.
 
-### User Data Script
+### Userdata Scripts
 
 The file `terraform/user_data.sh.tpl`:
 
@@ -123,25 +118,20 @@ The file `terraform/user_data.sh.tpl`:
 - Clones the application repository.
 - Packages the application using Maven and runs it on port 80.
 
----
+The file `terraform/user_data_2.sh`:
 
-## **Security Notes**
-
-- No keys stored in the repo — uses IAM roles.
-- EC2 instance uses a **write-only** role to upload logs to S3.
-- Separate **read-only** role can be used to verify logs.
-- Security group allows HTTP and SSH — you may restrict allowed IPs for tighter security.
+- Updates packages.
+- Installs AWS CLI.
 
 ---
+## ✅ Security Highlights
 
-## **FAQ**
-
-**Q: Can I deploy to a different region?**  
-Yes! Change the `provider "aws"` region in `main.tf` or set `AWS_DEFAULT_REGION`.
-
-**Q: Can I change ports?**  
-Yes. Update app code, user data script, and security group accordingly.
-
+- No hard-coded AWS keys (uses secrets).
+- Private S3 bucket.
+- IAM roles with least privilege:
+- Write-only role (first EC2).
+- Read-only role (second EC2).
+- Lifecycle policy on S3 to auto-delete logs after 7 days.
 ---
 
 ## **Contributing**
