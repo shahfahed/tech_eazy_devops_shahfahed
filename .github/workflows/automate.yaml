@@ -27,7 +27,7 @@ jobs:
                   echo "STAGE=Dev" >> $GITHUB_ENV
                   source ./scripts/dev_config.sh
                 fi
-                echo "AWS_REGION=$region" >> $GITHUB_ENV
+                echo "AWS_REGION=$TF_VAR_region" >> $GITHUB_ENV
 
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v3
