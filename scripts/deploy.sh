@@ -4,19 +4,17 @@ set -e
 # If any command in the script returns a non-zero exit code (error), immediately stop the script execution.
 # Helps avoid continuing after failures [a safety feature].
 
-#---
-#STAGE=$1
+STAGE=$1
 
-#if [[ "$STAGE" == "Dev" ]]; then
-#  source ./dev_config.sh
-#elif [[ "$STAGE" == "Prod" ]]; then
-#  source ./prod_config.sh
+if [[ "$STAGE" == "Dev" ]]; then
+  source ./dev_config.sh
+elif [[ "$STAGE" == "Prod" ]]; then
+  source ./prod_config.sh
   #source means load and execute that file in the current shell (not in a subshell).
-#else
-#  echo "Please specify stage: Dev or Prod"
-#  exit 1
-#fi
-#---
+else
+  echo "Please specify stage: Dev or Prod"
+  exit 1
+fi
 
 echo "Initializing Terraform..."
 cd ../terraform
