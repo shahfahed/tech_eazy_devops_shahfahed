@@ -137,18 +137,22 @@ resource "aws_iam_instance_profile" "s3_readonly_profile" {
 }
 
 resource "aws_instance" "ec2" {
+  count = 2
   ami                    = var.ami_id
   instance_type          = var.instance_type
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
-  iam_instance_profile   = aws_iam_instance_profile.s3_putobject_profile.name
 
-  user_data = templatefile("${path.module}/user_data.sh.tpl", {
+  iam_instance_profile = count.index == 0 ? aws_iam_instance_profile.s3_putobject_profile.name : aws_iam_instance_profile.s3_readonly_profile.name
+
+  user_data = count.index == 0 ? templatefile("${path.module}/user_data.sh.tpl", {
     repo_url    = var.repo_url
     bucket_name = var.bucket_name
-    })
+    }) : file(user_data_2.sh)
 
   tags = {
-    Name = var.name_tag
+    Name = (
+        count.index == 0 ? "${var.name_tag}-s3-write" : "${var.name_tag}-s3-read"
+    )
   }
 }
