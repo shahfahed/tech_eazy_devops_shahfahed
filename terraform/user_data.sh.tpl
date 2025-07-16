@@ -2,7 +2,7 @@
 sudo apt-get update -y
 
 # java-21, git and maven installation
-sudo apt-get install -y openjdk-21-jdk git maven
+sudo apt-get install -y openjdk-21-jdk git maven jq
 
 # awscli installation
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -12,6 +12,10 @@ sudo ./aws/install
 sudo rm -rf awscliv2.zip aws
 
 git clone ${repo_url} /home/ubuntu/app
+
+#curl -H "Authorization: token ${github_token}" -o /home/ubuntu/app/config.json ${config_json_url}
+
+curl  -o /home/ubuntu/app/config.json ${config_json_url}
 
 cd /home/ubuntu/app/
 
@@ -26,5 +30,5 @@ sudo java -jar target/*.jar &
 echo "App deployed successfully at $(date)" > /var/log/app-deploy.log
 
 # Upload logs to S3
-aws s3 cp /var/log/cloud-init.log s3://${bucket_name}/cloud-init-$(date +%s).log
-aws s3 cp /var/log/app-deploy.log s3://${bucket_name}/app/logs/app-deploy-$(date +%s).log
+aws s3 cp /var/log/cloud-init.log s3://${bucket_name}/logs/${stage}/cloud-init-$(date +%s).log
+aws s3 cp /var/log/app-deploy.log s3://${bucket_name}/logs/${stage}/app-deploy-$(date +%s).log

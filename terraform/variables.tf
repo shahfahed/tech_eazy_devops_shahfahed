@@ -36,3 +36,11 @@ variable "repo_url" {
   description = "Git repo URL"
   default     = "https://github.com/techeazy-consulting/techeazy-devops.git"
 }
+
+variable "config_json_url" {
+  description = "Config jason URL"  
+}
+
+variable "stage" {
+  description = "passing stage value"
+}
