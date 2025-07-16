@@ -13,8 +13,6 @@ sudo rm -rf awscliv2.zip aws
 
 git clone ${repo_url} /home/ubuntu/app
 
-#curl -H "Authorization: token ${github_token}" -o /home/ubuntu/app/config.json ${config_json_url}
-
 curl  -o /home/ubuntu/app/config.json ${config_json_url}
 
 cd /home/ubuntu/app/
