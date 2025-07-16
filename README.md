@@ -1,5 +1,7 @@
 # AWS EC2 Automated Deployment Project with GitHub Actions
+# AWS EC2 Automated Deployment Project with GitHub Actions
 
+This project automates the deployment of an application on an AWS EC2 instance using **Terraform**, **shell script** and **GitHub Actions**.
 This project automates the deployment of an application on an AWS EC2 instance using **Terraform**, **shell script** and **GitHub Actions**.
 
 ---
@@ -8,6 +10,11 @@ This project automates the deployment of an application on an AWS EC2 instance u
 
 This solution does the following:
 
+1️⃣ Spins up EC2 instances.  
+  • Supports multiple stages (Dev, Prod) via separate configuration files.  
+2️⃣ Installs required dependencies.  
+  • (Java 21, Git, Maven, AWS CLI).  
+3️⃣ Clones app repository and deploys the application on first EC2.  
 1️⃣ Spins up EC2 instances.  
   • Supports multiple stages (Dev, Prod) via separate configuration files.  
 2️⃣ Installs required dependencies.  
@@ -43,6 +50,9 @@ This solution does the following:
 ├── .github
     └── workflows
         └── automate.yaml
+├── .github
+    └── workflows
+        └── automate.yaml
 ├── scripts
 │   ├── deploy.sh
 │   ├── dev_config.sh
@@ -51,6 +61,7 @@ This solution does the following:
     ├── main.tf
     ├── outputs.tf
     ├── variables.tf
+    ├── user_data_2.sh
     ├── user_data_2.sh
     └── user_data.sh.tpl
 ```
