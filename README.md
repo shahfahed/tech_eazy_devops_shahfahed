@@ -1,7 +1,5 @@
 # AWS EC2 Automated Deployment Project with GitHub Actions
-# AWS EC2 Automated Deployment Project with GitHub Actions
 
-This project automates the deployment of an application on an AWS EC2 instance using **Terraform**, **shell script** and **GitHub Actions**.
 This project automates the deployment of an application on an AWS EC2 instance using **Terraform**, **shell script** and **GitHub Actions**.
 
 ---
@@ -10,24 +8,19 @@ This project automates the deployment of an application on an AWS EC2 instance u
 
 This solution does the following:
 
-1️⃣ Spins up EC2 instances.  
+- Spins up EC2 instances.  
   • Supports multiple stages (Dev, Prod) via separate configuration files.  
-2️⃣ Installs required dependencies.  
+- Installs required dependencies.  
   • (Java 21, Git, Maven, AWS CLI).  
-3️⃣ Clones app repository and deploys the application on first EC2.  
-1️⃣ Spins up EC2 instances.  
-  • Supports multiple stages (Dev, Prod) via separate configuration files.  
-2️⃣ Installs required dependencies.  
-  • (Java 21, Git, Maven, AWS CLI).  
-3️⃣ Clones app repository and deploys the application on first EC2.  
-4️⃣ Verifies that the app is reachable on port 80.  
-5️⃣ Creates a private S3 bucket and uploads EC2 logs and app logs to it.    
-6️⃣ Lifecycle rule automatically deletes logs after 7 days to save storage cost.  
-7️⃣ Supports two IAM roles:  
+- Clones app repository and deploys the application on first EC2.    
+- Verifies that the app is reachable on port 80.  
+- Creates a private S3 bucket and uploads EC2 logs and app logs to it.    
+- Lifecycle rule automatically deletes logs after 7 days to save storage cost.  
+- Supports two IAM roles:  
   • Write-only S3 role (attached to EC2 for uploading logs; no read permission). - Attached to First EC2  
   • Read-only S3 role (used to list and verify uploaded logs). - Attached to second EC2  
-8️⃣ Stops EC2 instance automatically after a set time (to avoid cost).  
-9️⃣ Uses GitHub Actions to automate provisioning, deployment, and validation.  
+- Stops EC2 instance automatically after a set time (to avoid cost).  
+- Uses GitHub Actions to automate provisioning, deployment, and validation.  
 
 ---
 
@@ -48,11 +41,8 @@ This solution does the following:
 .
 ├── README.md
 ├── .github
-    └── workflows
-        └── automate.yaml
-├── .github
-    └── workflows
-        └── automate.yaml
+│   └── workflows
+│       └── automate.yaml
 ├── scripts
 │   ├── deploy.sh
 │   ├── dev_config.sh
