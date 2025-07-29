@@ -23,8 +23,8 @@ terraform init
 echo "Applying Terraform..."
 terraform apply --auto-approve
 
-echo "Waiting 4 minutes to allow instance setup..."
-sleep 240
+echo "Waiting 5 minutes to allow instance setup..."
+sleep 300
 
 putobject_ec2_id=$(terraform output -raw putobject_ec2_id)
 putobject_ec2_public_ip=$(terraform output -raw putobject_ec2_public_ip)
@@ -37,7 +37,8 @@ echo "Testing app on port 80..."
 curl -I http://$putobject_ec2_public_ip
 
 echo "Sleeping 3 minutes before stopping instance for cost saving..."
-sleep 180
+#sleep 180
+sleep 60
 
 echo "Stopping instance..."
 aws ec2 stop-instances --instance-ids $putobject_ec2_id
