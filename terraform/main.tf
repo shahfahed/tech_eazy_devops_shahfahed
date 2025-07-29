@@ -73,7 +73,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs_lifecycle" {
 }
 
 # PutObject Role
-resource "aws_iam_role" "s3_putobject_role" {
+resource "aws_iam_role" "write_ec2_role" {
   name = "s3-putobject-role-${var.name_tag}"
   
   assume_role_policy = jsonencode({
@@ -89,14 +89,14 @@ resource "aws_iam_role" "s3_putobject_role" {
     ]
   })
   tags = {
-    Name = "${var.name_tag}-s3-putobject-role"
+    Name = "${var.name_tag}-write_ec2_role"
   }
 }
 
 # PutObject Role Policy
 resource "aws_iam_role_policy" "s3_putobject_policy" {
   name = "s3-putobject-policy-${var.name_tag}"
-  role = aws_iam_role.s3_putobject_role.id
+  role = aws_iam_role.write_ec2_role.id #for inline policy need to pass ID
 
   # Terraform's "jsonencode" function converts a
   # Terraform expression result to valid JSON syntax.
@@ -112,6 +112,12 @@ resource "aws_iam_role_policy" "s3_putobject_policy" {
       },
     ]
   })
+}
+
+# CloudWatch Policy Attachment
+resource "aws_iam_role_policy_attachment" "cloudwatch_policy" {
+  role       = aws_iam_role.write_ec2_role.name #for managed policy need to pass NAME
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
 # PutObject Instance Profile
@@ -176,34 +182,6 @@ resource "aws_instance" "ec2" {
         count.index == 0 ? "s3-write-${var.name_tag}" : "s3-read-${var.name_tag}"
     )
   }
-}
-
-# CloudWatch Role
-resource "aws_iam_role" "ec2_role" {
-  name = "ec2-cloudwatch-role-${var.name_tag}"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Action = "sts:AssumeRole",
-      Effect = "Allow",
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-    }]
-  })
-}
-
-# CloudWatch Role Policy Attachment
-resource "aws_iam_role_policy_attachment" "cloudwatch_attach" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-}
-
-# Instance profile for CloudWatch
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "ec2-profile-${var.name_tag}"
-  role = aws_iam_role.ec2_role.name  
 }
 
 # Log Group
