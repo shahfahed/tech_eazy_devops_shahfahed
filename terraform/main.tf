@@ -74,7 +74,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs_lifecycle" {
 
 # PutObject Role
 resource "aws_iam_role" "s3_putobject_role" {
-  name = "${var.name_tag}-s3-putobject-role"
+  name = "s3-putobject-role-${var.name_tag}"
   
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -95,7 +95,7 @@ resource "aws_iam_role" "s3_putobject_role" {
 
 # PutObject Role Policy
 resource "aws_iam_role_policy" "s3_putobject_policy" {
-  name = "${var.name_tag}-s3-putobject-policy"
+  name = "s3-putobject-policy-${var.name_tag}"
   role = aws_iam_role.s3_putobject_role.id
 
   # Terraform's "jsonencode" function converts a
@@ -116,13 +116,13 @@ resource "aws_iam_role_policy" "s3_putobject_policy" {
 
 # PutObject Instance Profile
 resource "aws_iam_instance_profile" "s3_putobject_profile" {
-  name = "${var.name_tag}-s3-putobject-instance-profile"
+  name = "s3-putobject-instance-profile-${var.name_tag}"
   role = aws_iam_role.s3_putobject_role.name
 }
 
 # ReadOnly S3 Role
 resource "aws_iam_role" "s3_readonly_role" {
-  name = "${var.name_tag}-s3-readonly"
+  name = "s3-readonly-${var.name_tag}"
 
   assume_role_policy = jsonencode({
     Version   = "2012-10-17"
@@ -149,7 +149,7 @@ resource "aws_iam_role_policy_attachment" "s3_readonly_policy" {
 
 # ReadOnly Instance Profile
 resource "aws_iam_instance_profile" "s3_readonly_profile" {
-  name = "${var.name_tag}-s3-readonly-instance-profile"
+  name = "s3-readonly-instance-profile-${var.name_tag}"
   role = aws_iam_role.s3_readonly_role.name
 }
 
@@ -164,15 +164,88 @@ resource "aws_instance" "ec2" {
   iam_instance_profile = count.index == 0 ? aws_iam_instance_profile.s3_putobject_profile.name : aws_iam_instance_profile.s3_readonly_profile.name
 
   user_data = count.index == 0 ? templatefile("${path.module}/user_data.sh.tpl", {
-    repo_url        = var.repo_url
-    config_json_url = var.config_json_url
-    bucket_name     = var.bucket_name
-    stage           = var.stage
+    cw_config_jason_url = var.cw_config_jason_url
+    app_repo_url        = var.app_repo_url
+    app_config_json_url = var.app_config_json_url
+    bucket_name         = var.bucket_name
+    stage               = var.stage
     }) : file("${path.module}/user_data_2.sh")
 
   tags = {
     Name = (
-        count.index == 0 ? "${var.name_tag}-s3-write" : "${var.name_tag}-s3-read"
+        count.index == 0 ? "s3-write-${var.name_tag}" : "s3-read-${var.name_tag}"
     )
   }
+}
+
+# CloudWatch Role
+resource "aws_iam_role" "ec2_role" {
+  name = "ec2-cloudwatch-role-${var.name_tag}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+  })
+}
+
+# CloudWatch Role Policy Attachment
+resource "aws_iam_role_policy_attachment" "cloudwatch_attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+# Instance profile for CloudWatch
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "ec2-profile-${var.name_tag}"
+  role = aws_iam_role.ec2_role.name  
+}
+
+# Log Group
+resource "aws_cloudwatch_log_group" "app_log_group" {
+  name              = "/app/${var.stage}/logs"
+  retention_in_days = 7
+}
+
+# SNS Topic
+resource "aws_sns_topic" "alerts" {
+  name = "app-alerts-topic-${var.name_tag}"
+}
+
+# SNS Subscription
+resource "aws_sns_topic_subscription" "email_alerts" {
+  topic_arn = aws_sns_topic.alerts.arn
+  protocol  = "email"
+  endpoint  = var.alert_email
+}
+
+# Log Metric
+resource "aws_cloudwatch_log_metric_filter" "error_filter" {
+  name           = "app-error-filter-${var.name_tag}"
+  log_group_name = aws_cloudwatch_log_group.app_log_group.name
+  pattern        = "?ERROR ?Exception"
+
+  metric_transformation {
+    name      = "AppErrorCount"
+    namespace = "AppLogs"
+    value     = "1"
+  }
+}
+
+# metric Alaram
+resource "aws_cloudwatch_metric_alarm" "error_alarm" {
+  alarm_name          = "app-error-alarm-${var.name_tag}"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = aws_cloudwatch_log_metric_filter.error_filter.metric_transformation[0].name
+  namespace           = "AppLogs"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 1
+  alarm_actions       = [aws_sns_topic.alerts.arn]
 }

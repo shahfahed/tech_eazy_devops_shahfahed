@@ -32,15 +32,22 @@ variable "bucket_name" {
   }
 }
 
-variable "repo_url" {
+variable "app_repo_url" {
   description = "Git repo URL"
-  default     = "https://github.com/techeazy-consulting/techeazy-devops.git"
 }
 
-variable "config_json_url" {
+variable "app_config_json_url" {
   description = "Config jason URL"  
 }
 
 variable "stage" {
   description = "passing stage value"
+}
+
+variable "alert_email" {
+  description = "Subscriber email"  
+}
+
+variable "cw_config_jason_url" {
+  description = "CloudWatch configuration"  
 }
