@@ -3,7 +3,7 @@ name: Project automation
 on:
     push:
         branches:
-            - main
+            - feature/my-change
 
 jobs:
     deploy:
