@@ -15,7 +15,7 @@ jobs:
 
             - name: Set env variables
               run: |
-                echo "STAGE=Dev" >> $GITHUB_ENV
+                echo "STAGE=Prod" >> $GITHUB_ENV
                 source ./scripts/dev_config.sh
                 echo "AWS_REGION=$TF_VAR_region" >> $GITHUB_ENV
 
@@ -30,14 +30,10 @@ jobs:
               uses: hashicorp/setup-terraform@v3
 
             - name: Execute deploy.sh
-              run: ./deploy.sh ${{ env.STAGE }}
+              run: |
+                chmod +x deploy.sh
+                ./deploy.sh ${{ env.STAGE }}
               working-directory: ./scripts
-
-#            - name: Execute deploy.sh
-#              run: |
-#                chmod +x deploy.sh
-#                ./deploy.sh ${{ env.STAGE }}
-#              working-directory: ./scripts
 
 #            - name: Get public IP from terraform output
 #              run: |
