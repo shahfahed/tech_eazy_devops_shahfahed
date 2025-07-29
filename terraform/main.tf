@@ -186,7 +186,7 @@ resource "aws_instance" "ec2" {
 
 # Log Group
 resource "aws_cloudwatch_log_group" "app_log_group" {
-  name              = "/app/${var.stage}/logs"
+  name              = "/ec2/${var.stage}/app/logs"
   retention_in_days = 7
 }
 
