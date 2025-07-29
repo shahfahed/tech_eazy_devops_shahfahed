@@ -167,7 +167,7 @@ resource "aws_instance" "ec2" {
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
 
-  iam_instance_profile = count.index == 0 ? aws_iam_instance_profile.write_ec2_profie.name : aws_iam_instance_profile.s3_readonly_profile.name
+  iam_instance_profile = count.index == 0 ? aws_iam_instance_profile.write_ec2_profile.name : aws_iam_instance_profile.s3_readonly_profile.name
 
   user_data = count.index == 0 ? templatefile("${path.module}/user_data.sh.tpl", {
     cw_config_jason_url = var.cw_config_jason_url
