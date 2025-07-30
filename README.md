@@ -1,39 +1,62 @@
-# AWS EC2 Automated Deployment Project with GitHub Actions
+# Automated EC2 Deployment with Monitoring and Alerts
 
-This project automates the deployment of an application on an AWS EC2 instance using **Terraform**, **shell script** and **GitHub Actions**.
+## Overview
 
----
+This project extends the previous EC2 automation by adding log monitoring and alerting using AWS CloudWatch and SNS. It supports multiple environments (dev, qa, prod) using environment-based GitHub Actions pipelines.
 
-## 📄 **Project Overview**
+## Features
 
-This solution does the following:
+1. **EC2 Log Monitoring**:
+   - CloudWatch Agent is installed and configured via `user_data.sh`.
+   - Logs from `/home/ubuntu/app.log` are streamed to CloudWatch Logs.
 
-- Spins up EC2 instances.  
-  • Supports multiple stages (Dev, Prod) via separate configuration files.  
-- Installs required dependencies.  
-  • (Java 21, Git, Maven, AWS CLI).  
-- Clones app repository and deploys the application on first EC2.    
-- Verifies that the app is reachable on port 80.  
-- Creates a private S3 bucket and uploads EC2 logs and app logs to it.    
-- Lifecycle rule automatically deletes logs after 7 days to save storage cost.  
-- Supports two IAM roles:  
-  • Write-only S3 role (attached to EC2 for uploading logs; no read permission). - Attached to First EC2  
-  • Read-only S3 role (used to list and verify uploaded logs). - Attached to second EC2  
-- Stops EC2 instance automatically after a set time (to avoid cost).  
-- Uses GitHub Actions to automate provisioning, deployment, and validation.  
+2. **CloudWatch Alarms**:
+   - CloudWatch metric filters detect "ERROR" or "Exception" in logs.
+   - Alarms notify through SNS if error patterns are detected.
 
----
+3. **SNS Notifications**:
+   - SNS topic (`app-alerts-topic`) sends alert emails.
 
-## ⚙️ **Prerequisites**
+## Terraform Structure
 
-- AWS account (Free Tier)
-- Terraform
-- AWS CLI
-- GitHub repository with secrets configured  
-  • AWS_ACCESS_KEY_ID  
-  • AWS_SECRET_ACCESS_KEY  
+- **main.tf / variables.tf / outputs.tf**: Main Terraform code (non-modular version).
+- **cloudwatch_agent_config.json**: Configuration file for the CloudWatch agent.
+- **GitHub Actions Pipelines**: Separate workflows for dev, qa, and prod environments.
+- **IAM Policies**: Combined IAM role for CloudWatch and S3 permissions.
 
----
+## Usage
+
+### Terraform Setup
+
+```bash
+terraform init
+terraform plan -var="stage=dev"
+terraform apply -var="stage=dev"
+```
+
+### Simulate Error for Testing
+
+```bash
+ssh -i "your-key.pem" ubuntu@<EC2-Public-IP>
+echo "ERROR: Simulated failure on $(date)" >> /home/ubuntu/app.log
+```
+
+### Check Email
+
+Confirm the SNS subscription via email. Once the error is logged, wait for a few minutes and you should receive an alert email.
+
+## Environment Pipelines
+
+- **dev**: Triggered on push to `dev` branch.
+- **qa**: Triggered on push to `qa` branch.
+- **prod**: Triggered on push to `main` branch.
+
+Each environment has a separate GitHub Actions workflow YAML file.
+
+## Notes
+
+- Ensure your GitHub secrets include AWS credentials.
+- Alarms may show "Insufficient Data" initially. Simulate logs to activate.
 
 ## 📁 **Directory Structure**
 
@@ -42,7 +65,8 @@ This solution does the following:
 ├── README.md
 ├── .github
 │   └── workflows
-│       └── automate.yaml
+│       └── dev.yaml
+│       └── prod.yaml
 ├── scripts
 │   ├── deploy.sh
 │   ├── dev_config.sh
@@ -52,49 +76,19 @@ This solution does the following:
     ├── outputs.tf
     ├── variables.tf
     ├── user_data_2.sh
-    ├── user_data_2.sh
     └── user_data.sh.tpl
 ```
 
----
-
-## 🌟 **How It Works**
-
-### Steps
-
-- Choose stage by pushing a tag:
-  - deploy-dev → Dev configs
-  - deploy-prod → Prod configs
-
-- Executes on Dev ENV by default when changes pushed to main.
-
-
-**Workflow (automate.yaml)**
-
-- Triggered on push to main and on deploy-* tags.
-- Sets stage variable dynamically.
-- Configures AWS credentials securely using GitHub secrets.
-- Runs deploy.sh, which:
-  - Sources correct config file.
-  - Runs Terraform to provision EC2, S3, IAM roles.
-  - Uploads logs to S3.
-  - Verifies application health using curl.
-
----
 ## ✅ Security Highlights
 
 - No hard-coded AWS keys (uses secrets).
 - Private S3 bucket.
 - IAM roles with least privilege:
-- Write-only role (first EC2).
-- Read-only role (second EC2).
 - Lifecycle policy on S3 to auto-delete logs after 7 days.
----
 
 ## **Contributing**
 
 Feel free to fork this repo and improve it. Suggestions and PRs are welcome!
 
----
 
 ### Happy Automating!
