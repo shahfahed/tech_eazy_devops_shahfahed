@@ -3,9 +3,7 @@ name: Project automation
 on:
     push:
         branches:
-            - main
-        tags:
-            - 'deploy-*'
+            - feature/my-change
 
 jobs:
     deploy:
@@ -15,18 +13,10 @@ jobs:
             - name: checkout code
               uses: actions/checkout@v3
 
-            - name: Set stage variable
+            - name: Set env variables
               run: |
-                if [[ "${GITHUB_REF_NAME}" == "deploy-dev" ]]; then
-                  echo "STAGE=Dev" >> $GITHUB_ENV
-                  source ./scripts/dev_config.sh
-                elif [[ "${GITHUB_REF_NAME}" == "deploy-prod" ]]; then
-                  echo "STAGE=Prod" >> $GITHUB_ENV
-                  source ./scripts/prod_config.sh
-                else
-                  echo "STAGE=Dev" >> $GITHUB_ENV
-                  source ./scripts/dev_config.sh
-                fi
+                echo "STAGE=Dev" >> $GITHUB_ENV
+                source ./scripts/dev_config.sh
                 echo "AWS_REGION=$TF_VAR_region" >> $GITHUB_ENV
 
             - name: Configure AWS Credentials

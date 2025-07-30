@@ -1,7 +1,14 @@
 #!/bin/bash
-sudo apt-get update -y
+
+# Variables from templatefile:
+# - cw_config_jason_url
+# - app_repo_url
+# - app_config_json_url
+# - bucket_name
+# - stage
 
 # java-21, git and maven installation
+sudo apt-get update -y
 sudo apt-get install -y openjdk-21-jdk git maven jq
 
 # awscli installation
@@ -11,9 +18,30 @@ unzip awscliv2.zip
 sudo ./aws/install
 sudo rm -rf awscliv2.zip aws
 
-git clone ${repo_url} /home/ubuntu/app
+# Install CloudWatch Agent
+wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+sudo dpkg -i amazon-cloudwatch-agent.deb
 
-curl  -o /home/ubuntu/app/config.json ${config_json_url}
+# Creating application log file and added dummy startup message
+mkdir -p /home/ubuntu
+touch /home/ubuntu/app.log
+echo "Application started at $(date)" >> /home/ubuntu/app.log
+
+# Download and apply CloudWatch Agent config
+curl -o /opt/aws/amazon-cloudwatch-agent/etc/config.json "${cw_config_jason_url}"
+
+# Start CloudWatch agent with config
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config \
+  -m ec2 \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json \
+  -s
+
+# clone app repo
+git clone ${app_repo_url} /home/ubuntu/app
+
+# download app configuration file
+curl  -o /home/ubuntu/app/config.json ${app_config_json_url}
 
 cd /home/ubuntu/app/
 
